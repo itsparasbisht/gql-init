@@ -5,33 +5,8 @@ export const products = [
     description: "High-quality wireless headphones with noise cancellation.",
     price: 199.99,
     imageUrl: "https://example.com/images/headphones.jpg",
-    category: {
-      id: "1",
-      name: "Electronics",
-    },
+    categoryId: "1",
     stock: 50,
-    reviews: [
-      {
-        id: "1",
-        rating: 5,
-        comment: "Amazing sound quality!",
-        user: {
-          id: "1",
-          username: "john_doe",
-          email: "john.doe@example.com",
-        },
-      },
-      {
-        id: "2",
-        rating: 4,
-        comment: "Good battery life.",
-        user: {
-          id: "2",
-          username: "jane_smith",
-          email: "jane.smith@example.com",
-        },
-      },
-    ],
   },
   {
     id: "2",
@@ -39,22 +14,8 @@ export const products = [
     description: "Latest model smartphone with advanced features.",
     price: 699.99,
     imageUrl: "https://example.com/images/phone.jpg",
-    category: {
-      id: "1",
-      name: "Electronics",
-    },
+    categoryId: "1",
     stock: 25,
-    reviews: [
-      {
-        id: "3",
-        rating: 4,
-        user: {
-          id: "1",
-          username: "john_doe",
-          email: "john.doe@example.com",
-        },
-      },
-    ],
   },
   {
     id: "3",
@@ -62,12 +23,8 @@ export const products = [
     description: "Powerful laptop for work and gaming.",
     price: 1299.99,
     imageUrl: "https://example.com/images/laptop.jpg",
-    category: {
-      id: "1",
-      name: "Electronics",
-    },
+    categoryId: "1",
     stock: 10,
-    reviews: [],
   },
   {
     id: "4",
@@ -75,12 +32,8 @@ export const products = [
     description: "Brew the perfect cup of coffee every time.",
     price: 89.99,
     imageUrl: "https://example.com/images/coffeemaker.jpg",
-    category: {
-      id: "2",
-      name: "Home & Kitchen",
-    },
+    categoryId: "2",
     stock: 30,
-    reviews: [],
   },
 ];
 
@@ -88,12 +41,10 @@ export const categories = [
   {
     id: "1",
     name: "Electronics",
-    products: products.filter((product) => product.category.id === "1"),
   },
   {
     id: "2",
     name: "Home & Kitchen",
-    products: products.filter((product) => product.category.id === "2"),
   },
 ];
 
@@ -107,5 +58,53 @@ export const users = [
     id: "2",
     username: "jane_smith",
     email: "jane.smith@example.com",
+  },
+];
+
+export const reviews = [
+  {
+    id: "1",
+    productId: "1",
+    userId: "1",
+    rating: 5,
+    comment: "Amazing sound quality!",
+  },
+  {
+    id: "2",
+    productId: "1",
+    userId: "2",
+    rating: 4,
+    comment: "Good battery life.",
+  },
+  {
+    id: "3",
+    productId: "2",
+    userId: "1",
+    rating: 4,
+  },
+];
+
+export const orders = [
+  {
+    id: "1",
+    userId: "1",
+    items: [
+      {
+        productId: "1",
+        quantity: 2,
+        priceAtOrder: 199.99,
+      },
+    ],
+  },
+  {
+    id: "2",
+    userId: "2",
+    items: [
+      {
+        productId: "2",
+        quantity: 1,
+        priceAtOrder: 699.99,
+      },
+    ],
   },
 ];

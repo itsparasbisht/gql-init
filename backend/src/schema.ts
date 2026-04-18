@@ -1,6 +1,9 @@
 import { gql } from "graphql-tag";
 
 export const typeDefs = gql`
+  """
+  A product available for purchase.
+  """
   type Product {
     id: ID!
     name: String!
@@ -12,12 +15,18 @@ export const typeDefs = gql`
     reviews: [Review!]
   }
 
+  """
+  A group of related products.
+  """
   type Category {
     id: ID!
     name: String!
     products: [Product!]
   }
 
+  """
+  A user account in the system.
+  """
   type User {
     id: ID!
     username: String!
@@ -26,6 +35,9 @@ export const typeDefs = gql`
     reviews: [Review!]
   }
 
+  """
+  A customer's review for a product.
+  """
   type Review {
     id: ID!
     rating: Int!
@@ -34,6 +46,9 @@ export const typeDefs = gql`
     product: Product!
   }
 
+  """
+  An order placed by a user.
+  """
   type Order {
     id: ID!
     user: User!
@@ -43,6 +58,9 @@ export const typeDefs = gql`
     createdAt: String!
   }
 
+  """
+  Possible statuses for an order.
+  """
   enum OrderStatus {
     PENDING
     SHIPPED
@@ -50,18 +68,42 @@ export const typeDefs = gql`
     CANCELLED
   }
 
+  """
+  An item within an order.
+  """
   type OrderItem {
     product: Product!
     quantity: Int!
     priceAtOrder: Float!
   }
 
+  """
+  Root query type.
+  """
   type Query {
+    """
+    Get all products.
+    """
     products: [Product!]!
+    """
+    Get a specific product by its ID.
+    """
     product(id: ID!): Product
+    """
+    Get all categories.
+    """
     categories: [Category!]!
+    """
+    Get a specific category by its ID.
+    """
     category(id: ID!): Category
+    """
+    Get all registered users.
+    """
     users: [User!]!
+    """
+    Get a specific user by its ID.
+    """
     user(id: ID!): User
   }
 `;
