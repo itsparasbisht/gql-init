@@ -1,18 +1,42 @@
-import { products, categories } from "../data.js";
+import { GraphQLError } from "graphql";
+import crypto from "node:crypto";
 
 export const mutations = {
-  addProduct: (_, { product }) => {
+  addProduct: (_: unknown, { product }: any, { db }: any) => {
     const { categoryId, name, description, price, imageUrl, stock } = product;
-    console.log(product);
-    const categoryExists = categories.some((cat) => cat.id === categoryId);
+
+    // Validation
+    if (!name || name.trim().length === 0) {
+      throw new GraphQLError("Product name is required", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
+    if (price < 0) {
+      throw new GraphQLError("Price cannot be negative", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
+    if (stock < 0) {
+      throw new GraphQLError("Stock cannot be negative", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
+    const categoryExists = db.categories.some(
+      (cat: any) => cat.id === categoryId,
+    );
 
     if (!categoryExists) {
-      throw new Error(`Category with ID ${categoryId} does not exist.`);
+      throw new GraphQLError(`Category with ID ${categoryId} does not exist.`, {
+        extensions: { code: "NOT_FOUND" },
+      });
     }
 
     const newProduct = {
-      id: String(products.length + 1),
-      name,
+      id: crypto.randomUUID(),
+      name: name.trim(),
       description,
       price,
       imageUrl,
@@ -20,59 +44,110 @@ export const mutations = {
       stock,
     };
 
-    products.push(newProduct);
+    db.products.push(newProduct);
 
     return newProduct;
   },
 
-  addCategory: (_, { name }) => {
+  addCategory: (_: unknown, { name }: { name: string }, { db }: any) => {
+    if (!name || name.trim().length === 0) {
+      throw new GraphQLError("Category name is required", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
+    const nameExists = db.categories.some(
+      (cat: any) => cat.name.toLowerCase() === name.trim().toLowerCase(),
+    );
+
+    if (nameExists) {
+      throw new GraphQLError(`Category with name "${name}" already exists.`, {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
     const newCategory = {
-      id: String(categories.length + 1),
-      name,
+      id: crypto.randomUUID(),
+      name: name.trim(),
     };
 
-    categories.push(newCategory);
+    db.categories.push(newCategory);
 
     return newCategory;
   },
 
-  updateProduct: (_, { product }) => {
+  updateProduct: (_: unknown, { product }: any, { db }: any) => {
     const { id, name, description, price, imageUrl, categoryId, stock } =
       product;
-    const existingProductIndex = products.findIndex((p) => p.id === id);
+
+    const existingProductIndex = db.products.findIndex((p: any) => p.id === id);
 
     if (existingProductIndex === -1) {
-      throw new Error(`Product with ID ${id} does not exist.`);
+      throw new GraphQLError(`Product with ID ${id} does not exist.`, {
+        extensions: { code: "NOT_FOUND" },
+      });
+    }
+
+    // Validation
+    if (name !== undefined && name.trim().length === 0) {
+      throw new GraphQLError("Product name cannot be empty", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
+    if (price !== undefined && price < 0) {
+      throw new GraphQLError("Price cannot be negative", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
+    if (stock !== undefined && stock < 0) {
+      throw new GraphQLError("Stock cannot be negative", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
     }
 
     if (categoryId) {
-      const categoryExists = categories.some((cat) => cat.id === categoryId);
+      const categoryExists = db.categories.some(
+        (cat: any) => cat.id === categoryId,
+      );
       if (!categoryExists) {
-        throw new Error(`Category with ID ${categoryId} does not exist.`);
+        throw new GraphQLError(
+          `Category with ID ${categoryId} does not exist.`,
+          {
+            extensions: { code: "NOT_FOUND" },
+          },
+        );
       }
     }
 
     const updatedProduct = {
-      ...products[existingProductIndex],
-      name: name ?? products[existingProductIndex]?.name,
-      description: description ?? products[existingProductIndex]?.description,
-      price: price ?? products[existingProductIndex]?.price,
-      imageUrl: imageUrl ?? products[existingProductIndex]?.imageUrl,
-      categoryId: categoryId ?? products[existingProductIndex]?.categoryId,
-      stock: stock ?? products[existingProductIndex]?.stock,
+      ...db.products[existingProductIndex],
+      name:
+        name !== undefined
+          ? name.trim()
+          : db.products[existingProductIndex].name,
+      description: description ?? db.products[existingProductIndex].description,
+      price: price ?? db.products[existingProductIndex].price,
+      imageUrl: imageUrl ?? db.products[existingProductIndex].imageUrl,
+      categoryId: categoryId ?? db.products[existingProductIndex].categoryId,
+      stock: stock ?? db.products[existingProductIndex].stock,
     };
-    products[existingProductIndex] = updatedProduct;
+
+    db.products[existingProductIndex] = updatedProduct;
     return updatedProduct;
   },
 
-  deleteProduct: (_, { id }) => {
-    const existingProductIndex = products.findIndex((p) => p.id === id);
+  deleteProduct: (_: unknown, { id }: { id: string }, { db }: any) => {
+    const existingProductIndex = db.products.findIndex((p: any) => p.id === id);
 
     if (existingProductIndex === -1) {
-      throw new Error(`Product with ID ${id} does not exist.`);
+      throw new GraphQLError(`Product with ID ${id} does not exist.`, {
+        extensions: { code: "NOT_FOUND" },
+      });
     }
 
-    products.splice(existingProductIndex, 1);
+    db.products.splice(existingProductIndex, 1);
     return true;
   },
 };
