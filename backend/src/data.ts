@@ -46,6 +46,10 @@ export const categories = [
     id: "2",
     name: "Home & Kitchen",
   },
+  {
+    id: "3",
+    name: "Clothes",
+  },
 ];
 
 export const users = [

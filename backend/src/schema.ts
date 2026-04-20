@@ -106,4 +106,30 @@ export const typeDefs = gql`
     """
     user(id: ID!): User
   }
+
+  input AddProductInput {
+    name: String!
+    description: String
+    price: Float!
+    imageUrl: String
+    categoryId: ID!
+    stock: Int!
+  }
+
+  input UpdateProductInput {
+    id: ID!
+    name: String
+    description: String
+    price: Float
+    imageUrl: String
+    categoryId: ID
+    stock: Int
+  }
+
+  type Mutation {
+    addProduct(product: AddProductInput): Product
+    addCategory(name: String!): Category
+    updateProduct(product: UpdateProductInput): Product
+    deleteProduct(id: ID!): Boolean
+  }
 `;
