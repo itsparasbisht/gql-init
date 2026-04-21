@@ -1,8 +1,7 @@
 import { GraphQLError } from "graphql";
-import crypto from "node:crypto";
 
 export const mutations = {
-  addProduct: (_: unknown, { product }: any, { db }: any) => {
+  addProduct: async (_: unknown, { product }: any, { models }: any) => {
     const { categoryId, name, description, price, imageUrl, stock } = product;
 
     // Validation
@@ -24,9 +23,7 @@ export const mutations = {
       });
     }
 
-    const categoryExists = db.categories.some(
-      (cat: any) => cat.id === categoryId,
-    );
+    const categoryExists = await models.Category.findById(categoryId);
 
     if (!categoryExists) {
       throw new GraphQLError(`Category with ID ${categoryId} does not exist.`, {
@@ -34,31 +31,28 @@ export const mutations = {
       });
     }
 
-    const newProduct = {
-      id: crypto.randomUUID(),
+    const newProduct = new models.Product({
       name: name.trim(),
       description,
       price,
       imageUrl,
-      categoryId,
+      category: categoryId,
       stock,
-    };
+    });
 
-    db.products.push(newProduct);
-
-    return newProduct;
+    return await newProduct.save();
   },
 
-  addCategory: (_: unknown, { name }: { name: string }, { db }: any) => {
+  addCategory: async (_: unknown, { name }: { name: string }, { models }: any) => {
     if (!name || name.trim().length === 0) {
       throw new GraphQLError("Category name is required", {
         extensions: { code: "BAD_USER_INPUT" },
       });
     }
 
-    const nameExists = db.categories.some(
-      (cat: any) => cat.name.toLowerCase() === name.trim().toLowerCase(),
-    );
+    const nameExists = await models.Category.findOne({
+      name: { $regex: new RegExp(`^${name.trim()}$`, "i") },
+    });
 
     if (nameExists) {
       throw new GraphQLError(`Category with name "${name}" already exists.`, {
@@ -66,88 +60,71 @@ export const mutations = {
       });
     }
 
-    const newCategory = {
-      id: crypto.randomUUID(),
+    const newCategory = new models.Category({
       name: name.trim(),
-    };
+    });
 
-    db.categories.push(newCategory);
-
-    return newCategory;
+    return await newCategory.save();
   },
 
-  updateProduct: (_: unknown, { product }: any, { db }: any) => {
+  updateProduct: async (_: unknown, { product }: any, { models }: any) => {
     const { id, name, description, price, imageUrl, categoryId, stock } =
       product;
 
-    const existingProductIndex = db.products.findIndex((p: any) => p.id === id);
-
-    if (existingProductIndex === -1) {
-      throw new GraphQLError(`Product with ID ${id} does not exist.`, {
-        extensions: { code: "NOT_FOUND" },
-      });
-    }
-
-    // Validation
-    if (name !== undefined && name.trim().length === 0) {
-      throw new GraphQLError("Product name cannot be empty", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
-    if (price !== undefined && price < 0) {
-      throw new GraphQLError("Price cannot be negative", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
-    if (stock !== undefined && stock < 0) {
-      throw new GraphQLError("Stock cannot be negative", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
+    // 1. Pre-update validation (for logic that depends on other collections)
     if (categoryId) {
-      const categoryExists = db.categories.some(
-        (cat: any) => cat.id === categoryId,
-      );
+      const categoryExists = await models.Category.findById(categoryId);
       if (!categoryExists) {
-        throw new GraphQLError(
-          `Category with ID ${categoryId} does not exist.`,
-          {
-            extensions: { code: "NOT_FOUND" },
-          },
-        );
+        throw new GraphQLError(`Category with ID ${categoryId} does not exist.`, {
+          extensions: { code: "NOT_FOUND" },
+        });
       }
     }
 
-    const updatedProduct = {
-      ...db.products[existingProductIndex],
-      name:
-        name !== undefined
-          ? name.trim()
-          : db.products[existingProductIndex].name,
-      description: description ?? db.products[existingProductIndex].description,
-      price: price ?? db.products[existingProductIndex].price,
-      imageUrl: imageUrl ?? db.products[existingProductIndex].imageUrl,
-      categoryId: categoryId ?? db.products[existingProductIndex].categoryId,
-      stock: stock ?? db.products[existingProductIndex].stock,
-    };
+    // 2. Prepare update object (filter out undefined values)
+    const updateFields: any = {};
+    if (name !== undefined) updateFields.name = name.trim();
+    if (description !== undefined) updateFields.description = description;
+    if (price !== undefined) updateFields.price = price;
+    if (imageUrl !== undefined) updateFields.imageUrl = imageUrl;
+    if (stock !== undefined) updateFields.stock = stock;
+    if (categoryId !== undefined) updateFields.category = categoryId;
 
-    db.products[existingProductIndex] = updatedProduct;
-    return updatedProduct;
+    // 3. Perform atomic update
+    try {
+      const updatedProduct = await models.Product.findByIdAndUpdate(
+        id,
+        { $set: updateFields },
+        { new: true, runValidators: true },
+      );
+
+      if (!updatedProduct) {
+        throw new GraphQLError(`Product with ID ${id} does not exist.`, {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      return updatedProduct;
+    } catch (error: any) {
+      // Handle Mongoose validation errors
+      if (error.name === "ValidationError") {
+        throw new GraphQLError(error.message, {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+      throw error;
+    }
   },
 
-  deleteProduct: (_: unknown, { id }: { id: string }, { db }: any) => {
-    const existingProductIndex = db.products.findIndex((p: any) => p.id === id);
+  deleteProduct: async (_: unknown, { id }: { id: string }, { models }: any) => {
+    const result = await models.Product.findByIdAndDelete(id);
 
-    if (existingProductIndex === -1) {
+    if (!result) {
       throw new GraphQLError(`Product with ID ${id} does not exist.`, {
         extensions: { code: "NOT_FOUND" },
       });
     }
 
-    db.products.splice(existingProductIndex, 1);
     return true;
   },
 };

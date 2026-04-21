@@ -1,16 +1,17 @@
 export const queries = {
-  products: (_: unknown, __: unknown, { db }: any) => db.products,
+  products: (_: unknown, __: unknown, { models }: any) => models.Product.find(),
 
-  product: (_: unknown, { id }: { id: string }, { db }: any) =>
-    db.products.find((p: any) => p.id === id) || null,
+  product: (_: unknown, { id }: { id: string }, { models }: any) =>
+    models.Product.findById(id),
 
-  categories: (_: unknown, __: unknown, { db }: any) => db.categories,
+  categories: (_: unknown, __: unknown, { models }: any) =>
+    models.Category.find(),
 
-  category: (_: unknown, { id }: { id: string }, { db }: any) =>
-    db.categories.find((c: any) => c.id === id) || null,
+  category: (_: unknown, { id }: { id: string }, { models }: any) =>
+    models.Category.findById(id),
 
-  users: (_: unknown, __: unknown, { db }: any) => db.users,
+  users: (_: unknown, __: unknown, { models }: any) => models.User.find(),
 
-  user: (_: unknown, { id }: { id: string }, { db }: any) =>
-    db.users.find((u: any) => u.id === id) || null,
+  user: (_: unknown, { id }: { id: string }, { models }: any) =>
+    models.User.findById(id),
 };

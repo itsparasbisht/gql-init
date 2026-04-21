@@ -1,50 +1,47 @@
 export const typeResolvers = {
   Product: {
-    category: (parent: any, _: unknown, { db }: any) =>
-      db.categories.find((c: any) => c.id === parent.categoryId),
+    category: (parent: any, _: unknown, { models }: any) =>
+      models.Category.findById(parent.category),
 
-    reviews: (parent: any, _: unknown, { db }: any) =>
-      db.reviews.filter((r: any) => r.productId === parent.id),
+    reviews: (parent: any, _: unknown, { models }: any) =>
+      models.Review.find({ product: parent.id }),
   },
 
   Category: {
-    products: (parent: any, _: unknown, { db }: any) =>
-      db.products.filter((p: any) => p.categoryId === parent.id),
+    products: (parent: any, _: unknown, { models }: any) =>
+      models.Product.find({ category: parent.id }),
   },
 
   User: {
-    orders: (parent: any, _: unknown, { db }: any) =>
-      db.orders.filter((o: any) => o.userId === parent.id),
+    orders: (parent: any, _: unknown, { models }: any) =>
+      models.Order.find({ user: parent.id }),
 
-    reviews: (parent: any, _: unknown, { db }: any) =>
-      db.reviews.filter((r: any) => r.userId === parent.id),
+    reviews: (parent: any, _: unknown, { models }: any) =>
+      models.Review.find({ user: parent.id }),
   },
 
   Review: {
-    user: (parent: any, _: unknown, { db }: any) =>
-      db.users.find((u: any) => u.id === parent.userId),
+    user: (parent: any, _: unknown, { models }: any) =>
+      models.User.findById(parent.user),
 
-    product: (parent: any, _: unknown, { db }: any) =>
-      db.products.find((p: any) => p.id === parent.productId),
+    product: (parent: any, _: unknown, { models }: any) =>
+      models.Product.findById(parent.product),
   },
 
   Order: {
-    user: (parent: any, _: unknown, { db }: any) =>
-      db.users.find((u: any) => u.id === parent.userId),
+    user: (parent: any, _: unknown, { models }: any) =>
+      models.User.findById(parent.user),
 
-    totalAmount: (parent: any) =>
-      parent.items.reduce(
-        (sum: number, item: any) => sum + item.priceAtOrder * item.quantity,
-        0,
-      ),
+    totalAmount: (parent: any) => parent.totalAmount,
 
-    status: () => "PENDING",
+    status: (parent: any) => parent.status || "PENDING",
 
-    createdAt: () => new Date().toISOString(),
+    createdAt: (parent: any) =>
+      parent.createdAt ? parent.createdAt.toISOString() : new Date().toISOString(),
   },
 
   OrderItem: {
-    product: (parent: any, _: unknown, { db }: any) =>
-      db.products.find((p: any) => p.id === parent.productId),
+    product: (parent: any, _: unknown, { models }: any) =>
+      models.Product.findById(parent.product),
   },
 };
