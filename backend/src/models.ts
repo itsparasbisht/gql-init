@@ -3,11 +3,16 @@ import mongoose, { Schema, Document } from "mongoose";
 // Category Model
 export interface ICategory extends Document {
   name: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const CategorySchema: Schema = new Schema({
-  name: { type: String, required: true, unique: true },
-});
+const CategorySchema: Schema = new Schema(
+  {
+    name: { type: String, required: true, unique: true },
+  },
+  { timestamps: true }
+);
 
 export const Category = mongoose.model<ICategory>("Category", CategorySchema);
 
@@ -19,16 +24,21 @@ export interface IProduct extends Document {
   imageUrl: string;
   category: mongoose.Types.ObjectId;
   stock: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const ProductSchema: Schema = new Schema({
-  name: { type: String, required: true },
-  description: { type: String },
-  price: { type: Number, required: true, min: 0 },
-  imageUrl: { type: String },
-  category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
-  stock: { type: Number, required: true, min: 0 },
-});
+const ProductSchema: Schema = new Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String },
+    price: { type: Number, required: true, min: 0 },
+    imageUrl: { type: String },
+    category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    stock: { type: Number, required: true, min: 0 },
+  },
+  { timestamps: true }
+);
 
 export const Product = mongoose.model<IProduct>("Product", ProductSchema);
 
@@ -36,12 +46,17 @@ export const Product = mongoose.model<IProduct>("Product", ProductSchema);
 export interface IUser extends Document {
   username: string;
   email: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const UserSchema: Schema = new Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-});
+const UserSchema: Schema = new Schema(
+  {
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+  },
+  { timestamps: true }
+);
 
 export const User = mongoose.model<IUser>("User", UserSchema);
 
@@ -51,14 +66,19 @@ export interface IReview extends Document {
   comment: string;
   user: mongoose.Types.ObjectId;
   product: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const ReviewSchema: Schema = new Schema({
-  rating: { type: Number, required: true, min: 1, max: 5 },
-  comment: { type: String },
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
-});
+const ReviewSchema: Schema = new Schema(
+  {
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+  },
+  { timestamps: true }
+);
 
 export const Review = mongoose.model<IReview>("Review", ReviewSchema);
 
@@ -75,24 +95,27 @@ export interface IOrder extends Document {
   totalAmount: number;
   status: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
-const OrderSchema: Schema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  items: [
-    {
-      product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
-      quantity: { type: Number, required: true, min: 1 },
-      priceAtOrder: { type: Number, required: true, min: 0 },
+const OrderSchema: Schema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    items: [
+      {
+        product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+        quantity: { type: Number, required: true, min: 1 },
+        priceAtOrder: { type: Number, required: true, min: 0 },
+      },
+    ],
+    totalAmount: { type: Number, required: true, min: 0 },
+    status: {
+      type: String,
+      enum: ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"],
+      default: "PENDING",
     },
-  ],
-  totalAmount: { type: Number, required: true, min: 0 },
-  status: {
-    type: String,
-    enum: ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"],
-    default: "PENDING",
   },
-  createdAt: { type: Date, default: Date.now },
-});
+  { timestamps: true }
+);
 
 export const Order = mongoose.model<IOrder>("Order", OrderSchema);

@@ -1,17 +1,19 @@
 export const queries = {
-  products: (_: unknown, __: unknown, { models }: any) => models.Product.find(),
+  products: async (_: unknown, __: unknown, { models }: any) =>
+    await models.Product.find(),
 
-  product: (_: unknown, { id }: { id: string }, { models }: any) =>
-    models.Product.findById(id),
+  product: async (_: unknown, { id }: { id: string }, { models }: any) =>
+    await models.Product.findById(id),
 
-  categories: (_: unknown, __: unknown, { models }: any) =>
-    models.Category.find(),
+  categories: async (_: unknown, __: unknown, { models }: any) =>
+    await models.Category.find(),
 
-  category: (_: unknown, { id }: { id: string }, { models }: any) =>
-    models.Category.findById(id),
+  category: async (_: unknown, { id }: { id: string }, { models }: any) =>
+    await models.Category.findById(id),
 
-  users: (_: unknown, __: unknown, { models }: any) => models.User.find(),
+  users: async (_: unknown, __: unknown, { models }: any) =>
+    await models.User.find(),
 
-  user: (_: unknown, { id }: { id: string }, { models }: any) =>
-    models.User.findById(id),
+  user: async (_: unknown, { id }: { id: string }, { models }: any) =>
+    await models.User.findById(id),
 };

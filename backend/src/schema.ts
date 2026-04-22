@@ -13,6 +13,8 @@ export const typeDefs = gql`
     category: Category!
     stock: Int!
     reviews: [Review!]
+    createdAt: String!
+    updatedAt: String!
   }
 
   """
@@ -22,6 +24,8 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     products: [Product!]
+    createdAt: String!
+    updatedAt: String!
   }
 
   """
@@ -33,6 +37,8 @@ export const typeDefs = gql`
     email: String!
     orders: [Order!]
     reviews: [Review!]
+    createdAt: String!
+    updatedAt: String!
   }
 
   """
@@ -44,6 +50,8 @@ export const typeDefs = gql`
     comment: String
     user: User!
     product: Product!
+    createdAt: String!
+    updatedAt: String!
   }
 
   """
@@ -56,6 +64,7 @@ export const typeDefs = gql`
     totalAmount: Float!
     status: OrderStatus!
     createdAt: String!
+    updatedAt: String!
   }
 
   """

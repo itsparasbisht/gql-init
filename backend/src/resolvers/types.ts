@@ -1,47 +1,59 @@
 export const typeResolvers = {
   Product: {
-    category: (parent: any, _: unknown, { models }: any) =>
-      models.Category.findById(parent.category),
+    category: async (parent: any, _: unknown, { models }: any) =>
+      await models.Category.findById(parent.category),
 
-    reviews: (parent: any, _: unknown, { models }: any) =>
-      models.Review.find({ product: parent.id }),
+    reviews: async (parent: any, _: unknown, { models }: any) =>
+      await models.Review.find({ product: parent.id }),
+
+    createdAt: (parent: any) => parent.createdAt.toISOString(),
+    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
   },
 
   Category: {
-    products: (parent: any, _: unknown, { models }: any) =>
-      models.Product.find({ category: parent.id }),
+    products: async (parent: any, _: unknown, { models }: any) =>
+      await models.Product.find({ category: parent.id }),
+
+    createdAt: (parent: any) => parent.createdAt.toISOString(),
+    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
   },
 
   User: {
-    orders: (parent: any, _: unknown, { models }: any) =>
-      models.Order.find({ user: parent.id }),
+    orders: async (parent: any, _: unknown, { models }: any) =>
+      await models.Order.find({ user: parent.id }),
 
-    reviews: (parent: any, _: unknown, { models }: any) =>
-      models.Review.find({ user: parent.id }),
+    reviews: async (parent: any, _: unknown, { models }: any) =>
+      await models.Review.find({ user: parent.id }),
+
+    createdAt: (parent: any) => parent.createdAt.toISOString(),
+    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
   },
 
   Review: {
-    user: (parent: any, _: unknown, { models }: any) =>
-      models.User.findById(parent.user),
+    user: async (parent: any, _: unknown, { models }: any) =>
+      await models.User.findById(parent.user),
 
-    product: (parent: any, _: unknown, { models }: any) =>
-      models.Product.findById(parent.product),
+    product: async (parent: any, _: unknown, { models }: any) =>
+      await models.Product.findById(parent.product),
+
+    createdAt: (parent: any) => parent.createdAt.toISOString(),
+    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
   },
 
   Order: {
-    user: (parent: any, _: unknown, { models }: any) =>
-      models.User.findById(parent.user),
+    user: async (parent: any, _: unknown, { models }: any) =>
+      await models.User.findById(parent.user),
 
     totalAmount: (parent: any) => parent.totalAmount,
 
     status: (parent: any) => parent.status || "PENDING",
 
-    createdAt: (parent: any) =>
-      parent.createdAt ? parent.createdAt.toISOString() : new Date().toISOString(),
+    createdAt: (parent: any) => parent.createdAt.toISOString(),
+    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
   },
 
   OrderItem: {
-    product: (parent: any, _: unknown, { models }: any) =>
-      models.Product.findById(parent.product),
+    product: async (parent: any, _: unknown, { models }: any) =>
+      await models.Product.findById(parent.product),
   },
 };
