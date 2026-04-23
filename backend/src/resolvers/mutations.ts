@@ -1,7 +1,12 @@
 import { GraphQLError } from "graphql";
+import type { Context, AddProductInput, UpdateProductInput } from "../types.js";
 
 export const mutations = {
-  addProduct: async (_: unknown, { product }: any, { models }: any) => {
+  addProduct: async (
+    _: unknown,
+    { product }: { product: AddProductInput },
+    { models }: Context,
+  ) => {
     const { categoryId, name, description, price, imageUrl, stock } = product;
 
     // Validation
@@ -36,14 +41,18 @@ export const mutations = {
       description,
       price,
       imageUrl,
-      category: categoryId,
+      categoryId: categoryId,
       stock,
     });
 
     return await newProduct.save();
   },
 
-  addCategory: async (_: unknown, { name }: { name: string }, { models }: any) => {
+  addCategory: async (
+    _: unknown,
+    { name }: { name: string },
+    { models }: Context,
+  ) => {
     if (!name || name.trim().length === 0) {
       throw new GraphQLError("Category name is required", {
         extensions: { code: "BAD_USER_INPUT" },
@@ -67,7 +76,11 @@ export const mutations = {
     return await newCategory.save();
   },
 
-  updateProduct: async (_: unknown, { product }: any, { models }: any) => {
+  updateProduct: async (
+    _: unknown,
+    { product }: { product: UpdateProductInput },
+    { models }: Context,
+  ) => {
     const { id, name, description, price, imageUrl, categoryId, stock } =
       product;
 
@@ -75,9 +88,12 @@ export const mutations = {
     if (categoryId) {
       const categoryExists = await models.Category.findById(categoryId);
       if (!categoryExists) {
-        throw new GraphQLError(`Category with ID ${categoryId} does not exist.`, {
-          extensions: { code: "NOT_FOUND" },
-        });
+        throw new GraphQLError(
+          `Category with ID ${categoryId} does not exist.`,
+          {
+            extensions: { code: "NOT_FOUND" },
+          },
+        );
       }
     }
 
@@ -88,7 +104,7 @@ export const mutations = {
     if (price !== undefined) updateFields.price = price;
     if (imageUrl !== undefined) updateFields.imageUrl = imageUrl;
     if (stock !== undefined) updateFields.stock = stock;
-    if (categoryId !== undefined) updateFields.category = categoryId;
+    if (categoryId !== undefined) updateFields.categoryId = categoryId;
 
     // 3. Perform atomic update
     try {
@@ -116,7 +132,11 @@ export const mutations = {
     }
   },
 
-  deleteProduct: async (_: unknown, { id }: { id: string }, { models }: any) => {
+  deleteProduct: async (
+    _: unknown,
+    { id }: { id: string },
+    { models }: Context,
+  ) => {
     const result = await models.Product.findByIdAndDelete(id);
 
     if (!result) {

@@ -1,19 +1,16 @@
+import type { Context } from "../types.js";
+
 export const queries = {
-  products: async (_: unknown, __: unknown, { models }: any) =>
+  products: async (_: unknown, __: unknown, { models }: Context) =>
     await models.Product.find(),
-
-  product: async (_: unknown, { id }: { id: string }, { models }: any) =>
+  product: async (_: unknown, { id }: { id: string }, { models }: Context) =>
     await models.Product.findById(id),
-
-  categories: async (_: unknown, __: unknown, { models }: any) =>
+  categories: async (_: unknown, __: unknown, { models }: Context) =>
     await models.Category.find(),
-
-  category: async (_: unknown, { id }: { id: string }, { models }: any) =>
+  category: async (_: unknown, { id }: { id: string }, { models }: Context) =>
     await models.Category.findById(id),
-
-  users: async (_: unknown, __: unknown, { models }: any) =>
+  users: async (_: unknown, __: unknown, { models }: Context) =>
     await models.User.find(),
-
-  user: async (_: unknown, { id }: { id: string }, { models }: any) =>
+  user: async (_: unknown, { id }: { id: string }, { models }: Context) =>
     await models.User.findById(id),
 };

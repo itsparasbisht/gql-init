@@ -1,59 +1,69 @@
+import type {
+  ICategory,
+  IProduct,
+  IUser,
+  IReview,
+  IOrder,
+  IOrderItem,
+} from "../models.js";
+import type { Context } from "../types.js";
+
 export const typeResolvers = {
   Product: {
-    category: async (parent: any, _: unknown, { models }: any) =>
-      await models.Category.findById(parent.category),
+    category: async (parent: IProduct, _: unknown, { models }: Context) =>
+      await models.Category.findById(parent.categoryId),
 
-    reviews: async (parent: any, _: unknown, { models }: any) =>
-      await models.Review.find({ product: parent.id }),
+    reviews: async (parent: IProduct, _: unknown, { models }: Context) =>
+      await models.Review.find({ productId: parent._id }),
 
-    createdAt: (parent: any) => parent.createdAt.toISOString(),
-    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
+    createdAt: (parent: IProduct) => parent.createdAt.toISOString(),
+    updatedAt: (parent: IProduct) => parent.updatedAt.toISOString(),
   },
 
   Category: {
-    products: async (parent: any, _: unknown, { models }: any) =>
-      await models.Product.find({ category: parent.id }),
+    products: async (parent: ICategory, _: unknown, { models }: Context) =>
+      await models.Product.find({ categoryId: parent._id }),
 
-    createdAt: (parent: any) => parent.createdAt.toISOString(),
-    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
+    createdAt: (parent: ICategory) => parent.createdAt.toISOString(),
+    updatedAt: (parent: ICategory) => parent.updatedAt.toISOString(),
   },
 
   User: {
-    orders: async (parent: any, _: unknown, { models }: any) =>
-      await models.Order.find({ user: parent.id }),
+    orders: async (parent: IUser, _: unknown, { models }: Context) =>
+      await models.Order.find({ userId: parent._id }),
 
-    reviews: async (parent: any, _: unknown, { models }: any) =>
-      await models.Review.find({ user: parent.id }),
+    reviews: async (parent: IUser, _: unknown, { models }: Context) =>
+      await models.Review.find({ userId: parent._id }),
 
-    createdAt: (parent: any) => parent.createdAt.toISOString(),
-    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
+    createdAt: (parent: IUser) => parent.createdAt.toISOString(),
+    updatedAt: (parent: IUser) => parent.updatedAt.toISOString(),
   },
 
   Review: {
-    user: async (parent: any, _: unknown, { models }: any) =>
-      await models.User.findById(parent.user),
+    user: async (parent: IReview, _: unknown, { models }: Context) =>
+      await models.User.findById(parent.userId),
 
-    product: async (parent: any, _: unknown, { models }: any) =>
-      await models.Product.findById(parent.product),
+    product: async (parent: IReview, _: unknown, { models }: Context) =>
+      await models.Product.findById(parent.productId),
 
-    createdAt: (parent: any) => parent.createdAt.toISOString(),
-    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
+    createdAt: (parent: IReview) => parent.createdAt.toISOString(),
+    updatedAt: (parent: IReview) => parent.updatedAt.toISOString(),
   },
 
   Order: {
-    user: async (parent: any, _: unknown, { models }: any) =>
-      await models.User.findById(parent.user),
+    user: async (parent: IOrder, _: unknown, { models }: Context) =>
+      await models.User.findById(parent.userId),
 
-    totalAmount: (parent: any) => parent.totalAmount,
+    totalAmount: (parent: IOrder) => parent.totalAmount,
 
-    status: (parent: any) => parent.status || "PENDING",
+    status: (parent: IOrder) => parent.status || "PENDING",
 
-    createdAt: (parent: any) => parent.createdAt.toISOString(),
-    updatedAt: (parent: any) => parent.updatedAt.toISOString(),
+    createdAt: (parent: IOrder) => parent.createdAt.toISOString(),
+    updatedAt: (parent: IOrder) => parent.updatedAt.toISOString(),
   },
 
   OrderItem: {
-    product: async (parent: any, _: unknown, { models }: any) =>
-      await models.Product.findById(parent.product),
+    product: async (parent: IOrderItem, _: unknown, { models }: Context) =>
+      await models.Product.findById(parent.productId),
   },
 };
