@@ -1,16 +1,13 @@
-import type { Context } from "../types.js";
+import type { QueryResolvers } from "../generated/graphql.js";
 
-export const queries = {
-  products: async (_: unknown, __: unknown, { models }: Context) =>
-    await models.Product.find(),
-  product: async (_: unknown, { id }: { id: string }, { models }: Context) =>
+export const queries: QueryResolvers = {
+  products: async (_parent, _args, { models }) => await models.Product.find(),
+  product: async (_parent, { id }, { models }) =>
     await models.Product.findById(id),
-  categories: async (_: unknown, __: unknown, { models }: Context) =>
+  categories: async (_parent, _args, { models }) =>
     await models.Category.find(),
-  category: async (_: unknown, { id }: { id: string }, { models }: Context) =>
+  category: async (_parent, { id }, { models }) =>
     await models.Category.findById(id),
-  users: async (_: unknown, __: unknown, { models }: Context) =>
-    await models.User.find(),
-  user: async (_: unknown, { id }: { id: string }, { models }: Context) =>
-    await models.User.findById(id),
+  users: async (_parent, _args, { models }) => await models.User.find(),
+  user: async (_parent, { id }, { models }) => await models.User.findById(id),
 };

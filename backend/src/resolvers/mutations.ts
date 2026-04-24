@@ -1,12 +1,14 @@
 import { GraphQLError } from "graphql";
-import type { Context, AddProductInput, UpdateProductInput } from "../types.js";
+import type { MutationResolvers } from "../generated/graphql.js";
 
-export const mutations = {
-  addProduct: async (
-    _: unknown,
-    { product }: { product: AddProductInput },
-    { models }: Context,
-  ) => {
+export const mutations: MutationResolvers = {
+  addProduct: async (_parent, { product }, { models }) => {
+    if (!product) {
+      throw new GraphQLError("Product input is required", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
     const { categoryId, name, description, price, imageUrl, stock } = product;
 
     // Validation
@@ -38,9 +40,9 @@ export const mutations = {
 
     const newProduct = new models.Product({
       name: name.trim(),
-      description,
+      description: description ?? undefined,
       price,
-      imageUrl,
+      imageUrl: imageUrl ?? undefined,
       categoryId: categoryId,
       stock,
     });
@@ -48,11 +50,7 @@ export const mutations = {
     return await newProduct.save();
   },
 
-  addCategory: async (
-    _: unknown,
-    { name }: { name: string },
-    { models }: Context,
-  ) => {
+  addCategory: async (_parent, { name }, { models }) => {
     if (!name || name.trim().length === 0) {
       throw new GraphQLError("Category name is required", {
         extensions: { code: "BAD_USER_INPUT" },
@@ -76,11 +74,13 @@ export const mutations = {
     return await newCategory.save();
   },
 
-  updateProduct: async (
-    _: unknown,
-    { product }: { product: UpdateProductInput },
-    { models }: Context,
-  ) => {
+  updateProduct: async (_parent, { product }, { models }) => {
+    if (!product) {
+      throw new GraphQLError("Product input is required", {
+        extensions: { code: "BAD_USER_INPUT" },
+      });
+    }
+
     const { id, name, description, price, imageUrl, categoryId, stock } =
       product;
 
@@ -99,12 +99,13 @@ export const mutations = {
 
     // 2. Prepare update object (filter out undefined values)
     const updateFields: any = {};
-    if (name !== undefined) updateFields.name = name.trim();
+    if (name !== undefined && name !== null) updateFields.name = name.trim();
     if (description !== undefined) updateFields.description = description;
-    if (price !== undefined) updateFields.price = price;
+    if (price !== undefined && price !== null) updateFields.price = price;
     if (imageUrl !== undefined) updateFields.imageUrl = imageUrl;
-    if (stock !== undefined) updateFields.stock = stock;
-    if (categoryId !== undefined) updateFields.categoryId = categoryId;
+    if (stock !== undefined && stock !== null) updateFields.stock = stock;
+    if (categoryId !== undefined && categoryId !== null)
+      updateFields.categoryId = categoryId;
 
     // 3. Perform atomic update
     try {
@@ -132,11 +133,7 @@ export const mutations = {
     }
   },
 
-  deleteProduct: async (
-    _: unknown,
-    { id }: { id: string },
-    { models }: Context,
-  ) => {
+  deleteProduct: async (_parent, { id }, { models }) => {
     const result = await models.Product.findByIdAndDelete(id);
 
     if (!result) {

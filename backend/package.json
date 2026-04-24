@@ -6,13 +6,17 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch src/**/*.ts --exec tsx src/server.ts"
+    "dev": "nodemon --watch src/**/*.ts --exec tsx src/server.ts",
+    "generate": "graphql-codegen --config codegen.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@graphql-codegen/cli": "^6.3.1",
+    "@graphql-codegen/typescript": "^5.0.10",
+    "@graphql-codegen/typescript-resolvers": "^5.1.8",
     "@types/node": "^25.6.0",
     "nodemon": "^3.1.14",
     "tsx": "^4.21.0",
