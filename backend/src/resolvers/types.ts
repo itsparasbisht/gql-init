@@ -2,14 +2,16 @@ import type { Resolvers } from "../generated/graphql.js";
 
 export const typeResolvers: Resolvers = {
   Product: {
-    category: async (parent, _args, { models }) => {
-      const category = await models.Category.findById(parent.categoryId);
+    category: async (parent, _args, { loaders }) => {
+      const category = await loaders.category.load(
+        parent.categoryId.toString(),
+      );
       if (!category) throw new Error("Category not found");
       return category;
     },
 
-    reviews: async (parent, _args, { models }) =>
-      await models.Review.find({ productId: parent._id }),
+    reviews: async (parent, _args, { loaders }) =>
+      await loaders.productReviews.load(parent._id.toString()),
 
     createdAt: (parent) => parent.createdAt.toISOString(),
     updatedAt: (parent) => parent.updatedAt.toISOString(),

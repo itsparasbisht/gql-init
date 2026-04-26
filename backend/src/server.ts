@@ -4,6 +4,8 @@ import { typeDefs } from "./schema.js";
 import { resolvers } from "./resolvers/index.js";
 import { connectDB } from "./db.js";
 import * as models from "./models.js";
+import { createLoaders } from "./utils/loaders.js";
+import { logger } from "./utils/logger.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -11,7 +13,6 @@ dotenv.config();
 const PORT = parseInt(process.env["PORT"] || "5000");
 
 async function startServer() {
-  // Connect to Database
   await connectDB();
 
   const server = new ApolloServer({
@@ -23,12 +24,13 @@ async function startServer() {
     listen: { port: PORT },
     context: async () => ({
       models,
+      loaders: createLoaders(),
     }),
   });
 
-  console.log(`Server ready at ${url}`);
+  logger.info(`Server ready at ${url}`);
 }
 
 startServer().catch((error) => {
-  console.error("Server error:", error);
+  logger.error(error, "Server failed to start");
 });
