@@ -1,13 +1,11 @@
 import pino from "pino";
 import type { LoggerOptions } from "pino";
-import dotenv from "dotenv";
+import { config } from "../config.js";
 
-dotenv.config();
-
-const isDevelopment = process.env["NODE_ENV"] === "development";
+const isDevelopment = config.NODE_ENV === "development";
 
 const pinoOptions: LoggerOptions = {
-  level: process.env["LOG_LEVEL"] || "info",
+  level: config.LOG_LEVEL,
 };
 
 if (isDevelopment) {

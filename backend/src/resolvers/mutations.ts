@@ -1,114 +1,132 @@
 import { GraphQLError } from "graphql";
 import type { MutationResolvers } from "../generated/graphql.js";
+import {
+  AddProductSchema,
+  UpdateProductSchema,
+  AddCategorySchema,
+} from "../utils/validation.js";
+import { ZodError } from "zod";
+import { logger } from "../utils/logger.js";
+
+const handleResolverError = (error: unknown): never => {
+  // 1. Handle Zod Validation Errors
+  if (error instanceof ZodError) {
+    throw new GraphQLError(error.issues[0]?.message || "Validation failed", {
+      extensions: {
+        code: "BAD_USER_INPUT",
+        http: { status: 400 },
+        errors: error.message,
+      },
+    });
+  }
+
+  // 2. Handle Mongoose/MongoDB specific errors
+  if (error instanceof Error) {
+    // MongoDB Duplicate Key Error (Unique constraints)
+    if ((error as any).code === 11000) {
+      throw new GraphQLError(
+        "Conflict: A record with this value already exists",
+        {
+          extensions: {
+            code: "CONFLICT",
+            http: { status: 409 },
+          },
+        },
+      );
+    }
+
+    // Mongoose Validation Error (as a fallback to Zod)
+    if (error.name === "ValidationError") {
+      throw new GraphQLError(error.message, {
+        extensions: {
+          code: "BAD_USER_INPUT",
+          http: { status: 400 },
+        },
+      });
+    }
+
+    // Explicit GraphQLErrors thrown in the resolver (like 404s)
+    if (error instanceof GraphQLError) {
+      throw error;
+    }
+  }
+
+  // 3. Fallback: Generic Server Error (Internal Server Error)
+  logger.error(error, "Unhandled Resolver Error");
+  throw new GraphQLError("An internal server error occurred", {
+    extensions: {
+      code: "INTERNAL_SERVER_ERROR",
+      http: { status: 500 },
+    },
+  });
+};
 
 export const mutations: MutationResolvers = {
   addProduct: async (_parent, { product }, { models }) => {
-    if (!product) {
-      throw new GraphQLError("Product input is required", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
+    try {
+      if (!product) {
+        throw new GraphQLError("Product input is required", {
+          extensions: { code: "BAD_USER_INPUT", http: { status: 400 } },
+        });
+      }
 
-    const { categoryId, name, description, price, imageUrl, stock } = product;
+      const validatedData = AddProductSchema.parse(product);
 
-    // Validation
-    if (!name || name.trim().length === 0) {
-      throw new GraphQLError("Product name is required", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
-    if (price < 0) {
-      throw new GraphQLError("Price cannot be negative", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
-    if (stock < 0) {
-      throw new GraphQLError("Stock cannot be negative", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
-    const categoryExists = await models.Category.findById(categoryId);
-
-    if (!categoryExists) {
-      throw new GraphQLError(`Category with ID ${categoryId} does not exist.`, {
-        extensions: { code: "NOT_FOUND" },
-      });
-    }
-
-    const newProduct = new models.Product({
-      name: name.trim(),
-      description: description ?? undefined,
-      price,
-      imageUrl: imageUrl ?? undefined,
-      categoryId: categoryId,
-      stock,
-    });
-
-    return await newProduct.save();
-  },
-
-  addCategory: async (_parent, { name }, { models }) => {
-    if (!name || name.trim().length === 0) {
-      throw new GraphQLError("Category name is required", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
-    const nameExists = await models.Category.findOne({
-      name: { $regex: new RegExp(`^${name.trim()}$`, "i") },
-    });
-
-    if (nameExists) {
-      throw new GraphQLError(`Category with name "${name}" already exists.`, {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
-    const newCategory = new models.Category({
-      name: name.trim(),
-    });
-
-    return await newCategory.save();
-  },
-
-  updateProduct: async (_parent, { product }, { models }) => {
-    if (!product) {
-      throw new GraphQLError("Product input is required", {
-        extensions: { code: "BAD_USER_INPUT" },
-      });
-    }
-
-    const { id, name, description, price, imageUrl, categoryId, stock } =
-      product;
-
-    // 1. Pre-update validation (for logic that depends on other collections)
-    if (categoryId) {
-      const categoryExists = await models.Category.findById(categoryId);
+      const categoryExists = await models.Category.findById(
+        validatedData.categoryId,
+      );
       if (!categoryExists) {
         throw new GraphQLError(
-          `Category with ID ${categoryId} does not exist.`,
+          `Category with ID ${validatedData.categoryId} does not exist.`,
           {
-            extensions: { code: "NOT_FOUND" },
+            extensions: { code: "NOT_FOUND", http: { status: 404 } },
           },
         );
       }
+
+      const newProduct = new models.Product(validatedData);
+      return await newProduct.save();
+    } catch (error) {
+      return handleResolverError(error);
     }
+  },
 
-    // 2. Prepare update object (filter out undefined values)
-    const updateFields: any = {};
-    if (name !== undefined && name !== null) updateFields.name = name.trim();
-    if (description !== undefined) updateFields.description = description;
-    if (price !== undefined && price !== null) updateFields.price = price;
-    if (imageUrl !== undefined) updateFields.imageUrl = imageUrl;
-    if (stock !== undefined && stock !== null) updateFields.stock = stock;
-    if (categoryId !== undefined && categoryId !== null)
-      updateFields.categoryId = categoryId;
-
-    // 3. Perform atomic update
+  addCategory: async (_parent, { name }, { models }) => {
     try {
+      const validatedData = AddCategorySchema.parse({ name });
+
+      const newCategory = new models.Category(validatedData);
+      return await newCategory.save();
+    } catch (error) {
+      return handleResolverError(error);
+    }
+  },
+
+  updateProduct: async (_parent, { product }, { models }) => {
+    try {
+      if (!product) {
+        throw new GraphQLError("Product input is required", {
+          extensions: { code: "BAD_USER_INPUT", http: { status: 400 } },
+        });
+      }
+
+      const validatedData = UpdateProductSchema.parse(product);
+      const { id, ...updateFields } = validatedData;
+
+      if (updateFields.categoryId) {
+        const categoryExists = await models.Category.findById(
+          updateFields.categoryId,
+        );
+        if (!categoryExists) {
+          throw new GraphQLError(
+            `Category with ID ${updateFields.categoryId} does not exist.`,
+            {
+              extensions: { code: "NOT_FOUND", http: { status: 404 } },
+            },
+          );
+        }
+      }
+
       const updatedProduct = await models.Product.findByIdAndUpdate(
         id,
         { $set: updateFields },
@@ -117,31 +135,29 @@ export const mutations: MutationResolvers = {
 
       if (!updatedProduct) {
         throw new GraphQLError(`Product with ID ${id} does not exist.`, {
-          extensions: { code: "NOT_FOUND" },
+          extensions: { code: "NOT_FOUND", http: { status: 404 } },
         });
       }
 
       return updatedProduct;
-    } catch (error: any) {
-      // Handle Mongoose validation errors
-      if (error.name === "ValidationError") {
-        throw new GraphQLError(error.message, {
-          extensions: { code: "BAD_USER_INPUT" },
-        });
-      }
-      throw error;
+    } catch (error) {
+      return handleResolverError(error);
     }
   },
 
   deleteProduct: async (_parent, { id }, { models }) => {
-    const result = await models.Product.findByIdAndDelete(id);
+    try {
+      const result = await models.Product.findByIdAndDelete(id);
 
-    if (!result) {
-      throw new GraphQLError(`Product with ID ${id} does not exist.`, {
-        extensions: { code: "NOT_FOUND" },
-      });
+      if (!result) {
+        throw new GraphQLError(`Product with ID ${id} does not exist.`, {
+          extensions: { code: "NOT_FOUND", http: { status: 404 } },
+        });
+      }
+
+      return true;
+    } catch (error) {
+      return handleResolverError(error);
     }
-
-    return true;
   },
 };

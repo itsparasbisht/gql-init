@@ -6,11 +6,7 @@ import { connectDB } from "./db.js";
 import * as models from "./models.js";
 import { createLoaders } from "./utils/loaders.js";
 import { logger } from "./utils/logger.js";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const PORT = parseInt(process.env["PORT"] || "5000");
+import { config } from "./config.js";
 
 async function startServer() {
   await connectDB();
@@ -21,7 +17,7 @@ async function startServer() {
   });
 
   const { url } = await startStandaloneServer(server, {
-    listen: { port: PORT },
+    listen: { port: config.PORT },
     context: async () => ({
       models,
       loaders: createLoaders(),

@@ -1,15 +1,13 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
+import { config } from "./config.js";
 import { logger } from "./utils/logger.js";
 
-dotenv.config();
-
-const MONGODB_URI = process.env["MONGODB_URI"] || "";
+const MONGODB_URI = config.MONGODB_URI;
 
 export const connectDB = async () => {
   try {
-    if (process.env["NODE_ENV"] === "development") {
-      mongoose.set("debug", (collectionName, method, query) => {
+    mongoose.set("debug", (collectionName, method, query) => {
+      if (config.NODE_ENV === "development") {
         logger.info(
           {
             collection: collectionName,
@@ -18,8 +16,9 @@ export const connectDB = async () => {
           },
           "Database Query",
         );
-      });
-    }
+      }
+    });
+
     await mongoose.connect(MONGODB_URI);
     logger.info("Connected to MongoDB successfully");
   } catch (error) {
