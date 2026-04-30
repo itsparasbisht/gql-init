@@ -1,12 +1,12 @@
 import { GraphQLError } from "graphql";
-import type { MutationResolvers } from "../generated/graphql.js";
+import type { MutationResolvers } from "../../generated/graphql.js";
 import {
   AddProductSchema,
   UpdateProductSchema,
   AddCategorySchema,
-} from "../utils/validation.js";
+} from "../../utils/validation.js";
 import { ZodError } from "zod";
-import { logger } from "../utils/logger.js";
+import { logger } from "../../utils/logger.js";
 
 const handleResolverError = (error: unknown): never => {
   // 1. Handle Zod Validation Errors

@@ -1,4 +1,4 @@
-import type { QueryResolvers } from "../generated/graphql.js";
+import type { QueryResolvers } from "../../generated/graphql.js";
 
 export const queries: QueryResolvers = {
   products: async (_parent, _args, { models }) => await models.Product.find(),

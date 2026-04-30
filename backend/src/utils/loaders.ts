@@ -1,6 +1,6 @@
 import DataLoader from "dataloader";
-import * as models from "../models.js";
-import type { ICategory, IReview } from "../models.js";
+import * as models from "../database/models.js";
+import type { ICategory, IReview } from "../database/models.js";
 
 export const createLoaders = () => {
   return {

@@ -1,4 +1,4 @@
-import type { Resolvers } from "../generated/graphql.js";
+import type { Resolvers } from "../../generated/graphql.js";
 
 export const typeResolvers: Resolvers = {
   Product: {

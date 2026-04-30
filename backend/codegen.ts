@@ -2,20 +2,20 @@ import type { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
   overwrite: true,
-  schema: "./src/schema.ts",
+  schema: "./src/graphql/typeDefs.ts",
   generates: {
     "src/generated/graphql.ts": {
       plugins: ["typescript", "typescript-resolvers"],
       config: {
-        contextType: "../types.js#Context",
+        contextType: "../graphql/context.js#Context",
         useIndexSignature: true,
         useTypeImports: true,
         mappers: {
-          Product: "../models.js#IProduct",
-          Category: "../models.js#ICategory",
-          User: "../models.js#IUser",
-          Review: "../models.js#IReview",
-          Order: "../models.js#IOrder",
+          Product: "../database/models.js#IProduct",
+          Category: "../database/models.js#ICategory",
+          User: "../database/models.js#IUser",
+          Review: "../database/models.js#IReview",
+          Order: "../database/models.js#IOrder",
         },
       },
     },
