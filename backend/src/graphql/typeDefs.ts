@@ -33,12 +33,19 @@ export const typeDefs = gql`
   """
   type User {
     id: ID!
-    username: String!
     email: String!
     orders: [Order!]
     reviews: [Review!]
     createdAt: String!
     updatedAt: String!
+  }
+
+  """
+  Payload returned after successful authentication.
+  """
+  type AuthPayload {
+    token: String!
+    user: User!
   }
 
   """
@@ -107,13 +114,9 @@ export const typeDefs = gql`
     """
     category(id: ID!): Category
     """
-    Get all registered users.
+    Get the currently authenticated user.
     """
-    users: [User!]!
-    """
-    Get a specific user by its ID.
-    """
-    user(id: ID!): User
+    me: User
   }
 
   input AddProductInput {
@@ -135,7 +138,19 @@ export const typeDefs = gql`
     stock: Int
   }
 
+  input RegisterInput {
+    email: String!
+    password: String!
+  }
+
+  input LoginInput {
+    email: String!
+    password: String!
+  }
+
   type Mutation {
+    register(input: RegisterInput!): AuthPayload!
+    login(input: LoginInput!): AuthPayload!
     addProduct(product: AddProductInput): Product
     addCategory(name: String!): Category
     updateProduct(product: UpdateProductInput): Product

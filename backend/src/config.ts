@@ -11,6 +11,8 @@ const envSchema = z.object({
   MONGODB_URI: z
     .string()
     .min(1, "MONGODB_URI must be a valid connection string"),
+  JWT_SECRET: z.string().min(8, "JWT_SECRET must be at least 8 characters"),
+  JWT_EXPIRES_IN: z.string().default("7d"),
   LOG_LEVEL: z.enum(["info", "error", "debug", "warn"]).default("info"),
 });
 

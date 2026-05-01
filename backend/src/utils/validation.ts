@@ -30,3 +30,16 @@ export const AddCategorySchema = z.object({
     .min(2, "Category name must be at least 2 characters")
     .toLowerCase(),
 });
+
+export const RegisterSchema = z.object({
+  email: z.email("Invalid email address").toLowerCase(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password too long"),
+});
+
+export const LoginSchema = z.object({
+  email: z.email("Invalid email address").toLowerCase(),
+  password: z.string().min(1, "Password is required"),
+});

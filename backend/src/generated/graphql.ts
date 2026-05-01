@@ -28,6 +28,13 @@ export type AddProductInput = {
   stock: Scalars['Int']['input'];
 };
 
+/** Payload returned after successful authentication. */
+export type AuthPayload = {
+  __typename?: 'AuthPayload';
+  token: Scalars['String']['output'];
+  user: User;
+};
+
 /** A group of related products. */
 export type Category = {
   __typename?: 'Category';
@@ -38,11 +45,18 @@ export type Category = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type LoginInput = {
+  email: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   addCategory?: Maybe<Category>;
   addProduct?: Maybe<Product>;
   deleteProduct?: Maybe<Scalars['Boolean']['output']>;
+  login: AuthPayload;
+  register: AuthPayload;
   updateProduct?: Maybe<Product>;
 };
 
@@ -59,6 +73,16 @@ export type MutationAddProductArgs = {
 
 export type MutationDeleteProductArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationLoginArgs = {
+  input: LoginInput;
+};
+
+
+export type MutationRegisterArgs = {
+  input: RegisterInput;
 };
 
 
@@ -116,14 +140,12 @@ export type Query = {
   categories: Array<Category>;
   /** Get a specific category by its ID. */
   category?: Maybe<Category>;
+  /** Get the currently authenticated user. */
+  me?: Maybe<User>;
   /** Get a specific product by its ID. */
   product?: Maybe<Product>;
   /** Get all products. */
   products: Array<Product>;
-  /** Get a specific user by its ID. */
-  user?: Maybe<User>;
-  /** Get all registered users. */
-  users: Array<User>;
 };
 
 
@@ -138,10 +160,9 @@ export type QueryProductArgs = {
   id: Scalars['ID']['input'];
 };
 
-
-/** Root query type. */
-export type QueryUserArgs = {
-  id: Scalars['ID']['input'];
+export type RegisterInput = {
+  email: Scalars['String']['input'];
+  password: Scalars['String']['input'];
 };
 
 /** A customer's review for a product. */
@@ -175,7 +196,6 @@ export type User = {
   orders?: Maybe<Array<Order>>;
   reviews?: Maybe<Array<Review>>;
   updatedAt: Scalars['String']['output'];
-  username: Scalars['String']['output'];
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -253,17 +273,20 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   AddProductInput: AddProductInput;
+  AuthPayload: ResolverTypeWrapper<Omit<AuthPayload, 'user'> & { user: ResolversTypes['User'] }>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Category: ResolverTypeWrapper<ICategory>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  LoginInput: LoginInput;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Order: ResolverTypeWrapper<IOrder>;
   OrderItem: ResolverTypeWrapper<Omit<OrderItem, 'product'> & { product: ResolversTypes['Product'] }>;
   OrderStatus: OrderStatus;
   Product: ResolverTypeWrapper<IProduct>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  RegisterInput: RegisterInput;
   Review: ResolverTypeWrapper<IReview>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   UpdateProductInput: UpdateProductInput;
@@ -273,20 +296,28 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   AddProductInput: AddProductInput;
+  AuthPayload: Omit<AuthPayload, 'user'> & { user: ResolversParentTypes['User'] };
   Boolean: Scalars['Boolean']['output'];
   Category: ICategory;
   Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
+  LoginInput: LoginInput;
   Mutation: Record<PropertyKey, never>;
   Order: IOrder;
   OrderItem: Omit<OrderItem, 'product'> & { product: ResolversParentTypes['Product'] };
   Product: IProduct;
   Query: Record<PropertyKey, never>;
+  RegisterInput: RegisterInput;
   Review: IReview;
   String: Scalars['String']['output'];
   UpdateProductInput: UpdateProductInput;
   User: IUser;
+}>;
+
+export type AuthPayloadResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AuthPayload'] = ResolversParentTypes['AuthPayload']> = ResolversObject<{
+  token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
 }>;
 
 export type CategoryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Category'] = ResolversParentTypes['Category']> = ResolversObject<{
@@ -301,6 +332,8 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addCategory?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<MutationAddCategoryArgs, 'name'>>;
   addProduct?: Resolver<Maybe<ResolversTypes['Product']>, ParentType, ContextType, Partial<MutationAddProductArgs>>;
   deleteProduct?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationDeleteProductArgs, 'id'>>;
+  login?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'input'>>;
+  register?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRegisterArgs, 'input'>>;
   updateProduct?: Resolver<Maybe<ResolversTypes['Product']>, ParentType, ContextType, Partial<MutationUpdateProductArgs>>;
 }>;
 
@@ -336,10 +369,9 @@ export type ProductResolvers<ContextType = Context, ParentType extends Resolvers
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   categories?: Resolver<Array<ResolversTypes['Category']>, ParentType, ContextType>;
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QueryCategoryArgs, 'id'>>;
+  me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   product?: Resolver<Maybe<ResolversTypes['Product']>, ParentType, ContextType, RequireFields<QueryProductArgs, 'id'>>;
   products?: Resolver<Array<ResolversTypes['Product']>, ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
-  users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
 }>;
 
 export type ReviewResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Review'] = ResolversParentTypes['Review']> = ResolversObject<{
@@ -359,10 +391,10 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   orders?: Resolver<Maybe<Array<ResolversTypes['Order']>>, ParentType, ContextType>;
   reviews?: Resolver<Maybe<Array<ResolversTypes['Review']>>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 }>;
 
 export type Resolvers<ContextType = Context> = ResolversObject<{
+  AuthPayload?: AuthPayloadResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Order?: OrderResolvers<ContextType>;

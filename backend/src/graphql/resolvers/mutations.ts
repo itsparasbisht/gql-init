@@ -4,9 +4,12 @@ import {
   AddProductSchema,
   UpdateProductSchema,
   AddCategorySchema,
+  RegisterSchema,
+  LoginSchema,
 } from "../../utils/validation.js";
 import { ZodError } from "zod";
 import { logger } from "../../utils/logger.js";
+import { hashPassword, comparePasswords, generateToken, requireAuth } from "../../utils/auth.js";
 
 const handleResolverError = (error: unknown): never => {
   // 1. Handle Zod Validation Errors
@@ -62,102 +65,84 @@ const handleResolverError = (error: unknown): never => {
 };
 
 export const mutations: MutationResolvers = {
-  addProduct: async (_parent, { product }, { models }) => {
+  register: async (_parent, { input }, { models }) => {
     try {
-      if (!product) {
-        throw new GraphQLError("Product input is required", {
+      const { email, password } = RegisterSchema.parse(input);
+      const existingUser = await models.User.findOne({ email });
+      if (existingUser) {
+        throw new GraphQLError("User already exists with this email", {
           extensions: { code: "BAD_USER_INPUT", http: { status: 400 } },
         });
       }
-
-      const validatedData = AddProductSchema.parse(product);
-
-      const categoryExists = await models.Category.findById(
-        validatedData.categoryId,
-      );
-      if (!categoryExists) {
-        throw new GraphQLError(
-          `Category with ID ${validatedData.categoryId} does not exist.`,
-          {
-            extensions: { code: "NOT_FOUND", http: { status: 404 } },
-          },
-        );
-      }
-
-      const newProduct = new models.Product(validatedData);
-      return await newProduct.save();
+      const newUser = new models.User({ email, password: await hashPassword(password) });
+      await newUser.save();
+      return { token: generateToken(newUser), user: newUser };
     } catch (error) {
       return handleResolverError(error);
     }
   },
 
-  addCategory: async (_parent, { name }, { models }) => {
+  login: async (_parent, { input }, { models }) => {
     try {
-      const validatedData = AddCategorySchema.parse({ name });
-
-      const newCategory = new models.Category(validatedData);
-      return await newCategory.save();
-    } catch (error) {
-      return handleResolverError(error);
-    }
-  },
-
-  updateProduct: async (_parent, { product }, { models }) => {
-    try {
-      if (!product) {
-        throw new GraphQLError("Product input is required", {
-          extensions: { code: "BAD_USER_INPUT", http: { status: 400 } },
+      const { email, password } = LoginSchema.parse(input);
+      const user = await models.User.findOne({ email });
+      if (!user || !(await comparePasswords(password, user.password))) {
+        throw new GraphQLError("Invalid email or password", {
+          extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
         });
       }
+      return { token: generateToken(user), user };
+    } catch (error) {
+      return handleResolverError(error);
+    }
+  },
 
-      const validatedData = UpdateProductSchema.parse(product);
-      const { id, ...updateFields } = validatedData;
-
-      if (updateFields.categoryId) {
-        const categoryExists = await models.Category.findById(
-          updateFields.categoryId,
-        );
-        if (!categoryExists) {
-          throw new GraphQLError(
-            `Category with ID ${updateFields.categoryId} does not exist.`,
-            {
-              extensions: { code: "NOT_FOUND", http: { status: 404 } },
-            },
-          );
-        }
-      }
-
-      const updatedProduct = await models.Product.findByIdAndUpdate(
-        id,
-        { $set: updateFields },
-        { new: true, runValidators: true },
-      );
-
-      if (!updatedProduct) {
-        throw new GraphQLError(`Product with ID ${id} does not exist.`, {
+  addProduct: requireAuth(async (_parent, { product }, { models }) => {
+    try {
+      const data = AddProductSchema.parse(product);
+      const category = await models.Category.findById(data.categoryId);
+      if (!category) {
+        throw new GraphQLError(`Category ${data.categoryId} not found`, {
           extensions: { code: "NOT_FOUND", http: { status: 404 } },
         });
       }
-
-      return updatedProduct;
+      return await new models.Product(data).save();
     } catch (error) {
       return handleResolverError(error);
     }
-  },
+  }),
 
-  deleteProduct: async (_parent, { id }, { models }) => {
+  addCategory: requireAuth(async (_parent, { name }, { models }) => {
     try {
-      const result = await models.Product.findByIdAndDelete(id);
+      const data = AddCategorySchema.parse({ name });
+      return await new models.Category(data).save();
+    } catch (error) {
+      return handleResolverError(error);
+    }
+  }),
 
-      if (!result) {
-        throw new GraphQLError(`Product with ID ${id} does not exist.`, {
-          extensions: { code: "NOT_FOUND", http: { status: 404 } },
-        });
+  updateProduct: requireAuth(async (_parent, { product }, { models }) => {
+    try {
+      const { id, ...fields } = UpdateProductSchema.parse(product);
+      if (fields.categoryId) {
+        const cat = await models.Category.findById(fields.categoryId);
+        if (!cat) throw new GraphQLError("Category not found", { extensions: { code: "NOT_FOUND" } });
       }
+      const updated = await models.Product.findByIdAndUpdate(id, { $set: fields }, { new: true });
+      if (!updated) throw new GraphQLError("Product not found", { extensions: { code: "NOT_FOUND" } });
+      return updated;
+    } catch (error) {
+      return handleResolverError(error);
+    }
+  }),
 
+  deleteProduct: requireAuth(async (_parent, { id }, { models }) => {
+    try {
+      const deleted = await models.Product.findByIdAndDelete(id);
+      if (!deleted) throw new GraphQLError("Product not found", { extensions: { code: "NOT_FOUND" } });
       return true;
     } catch (error) {
       return handleResolverError(error);
     }
-  },
+  }),
 };
