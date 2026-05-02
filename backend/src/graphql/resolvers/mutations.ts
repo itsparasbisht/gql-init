@@ -7,62 +7,8 @@ import {
   RegisterSchema,
   LoginSchema,
 } from "../../utils/validation.js";
-import { ZodError } from "zod";
-import { logger } from "../../utils/logger.js";
 import { hashPassword, comparePasswords, generateToken, requireAuth } from "../../utils/auth.js";
-
-const handleResolverError = (error: unknown): never => {
-  // 1. Handle Zod Validation Errors
-  if (error instanceof ZodError) {
-    throw new GraphQLError(error.issues[0]?.message || "Validation failed", {
-      extensions: {
-        code: "BAD_USER_INPUT",
-        http: { status: 400 },
-        errors: error.message,
-      },
-    });
-  }
-
-  // 2. Handle Mongoose/MongoDB specific errors
-  if (error instanceof Error) {
-    // MongoDB Duplicate Key Error (Unique constraints)
-    if ((error as any).code === 11000) {
-      throw new GraphQLError(
-        "Conflict: A record with this value already exists",
-        {
-          extensions: {
-            code: "CONFLICT",
-            http: { status: 409 },
-          },
-        },
-      );
-    }
-
-    // Mongoose Validation Error (as a fallback to Zod)
-    if (error.name === "ValidationError") {
-      throw new GraphQLError(error.message, {
-        extensions: {
-          code: "BAD_USER_INPUT",
-          http: { status: 400 },
-        },
-      });
-    }
-
-    // Explicit GraphQLErrors thrown in the resolver (like 404s)
-    if (error instanceof GraphQLError) {
-      throw error;
-    }
-  }
-
-  // 3. Fallback: Generic Server Error (Internal Server Error)
-  logger.error(error, "Unhandled Resolver Error");
-  throw new GraphQLError("An internal server error occurred", {
-    extensions: {
-      code: "INTERNAL_SERVER_ERROR",
-      http: { status: 500 },
-    },
-  });
-};
+import { handleResolverError } from "../../utils/errors.js";
 
 export const mutations: MutationResolvers = {
   register: async (_parent, { input }, { models }) => {

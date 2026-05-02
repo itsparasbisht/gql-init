@@ -32,7 +32,7 @@ export const AddCategorySchema = z.object({
 });
 
 export const RegisterSchema = z.object({
-  email: z.email("Invalid email address").toLowerCase(),
+  email: z.email({ message: "Invalid email address" }).trim().toLowerCase(),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -40,6 +40,8 @@ export const RegisterSchema = z.object({
 });
 
 export const LoginSchema = z.object({
-  email: z.email("Invalid email address").toLowerCase(),
+  email: z.email({ message: "Invalid email address" }).trim().toLowerCase(),
   password: z.string().min(1, "Password is required"),
 });
+
+export const IdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");

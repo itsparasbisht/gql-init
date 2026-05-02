@@ -140,12 +140,12 @@ export type Query = {
   categories: Array<Category>;
   /** Get a specific category by its ID. */
   category?: Maybe<Category>;
-  /** Get the currently authenticated user. */
-  me?: Maybe<User>;
   /** Get a specific product by its ID. */
   product?: Maybe<Product>;
   /** Get all products. */
   products: Array<Product>;
+  /** Get the currently authenticated user's profile. */
+  profile?: Maybe<User>;
 };
 
 
@@ -369,9 +369,9 @@ export type ProductResolvers<ContextType = Context, ParentType extends Resolvers
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   categories?: Resolver<Array<ResolversTypes['Category']>, ParentType, ContextType>;
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QueryCategoryArgs, 'id'>>;
-  me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   product?: Resolver<Maybe<ResolversTypes['Product']>, ParentType, ContextType, RequireFields<QueryProductArgs, 'id'>>;
   products?: Resolver<Array<ResolversTypes['Product']>, ParentType, ContextType>;
+  profile?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
 }>;
 
 export type ReviewResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Review'] = ResolversParentTypes['Review']> = ResolversObject<{

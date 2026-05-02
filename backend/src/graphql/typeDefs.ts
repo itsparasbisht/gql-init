@@ -114,9 +114,9 @@ export const typeDefs = gql`
     """
     category(id: ID!): Category
     """
-    Get the currently authenticated user.
+    Get the currently authenticated user's profile.
     """
-    me: User
+    profile: User
   }
 
   input AddProductInput {
