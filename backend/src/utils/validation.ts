@@ -45,3 +45,20 @@ export const LoginSchema = z.object({
 });
 
 export const IdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");
+
+export const AddReviewSchema = z.object({
+  productId: IdSchema,
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().max(500).optional(),
+});
+
+export const CreateOrderSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        productId: IdSchema,
+        quantity: z.number().int().positive(),
+      }),
+    )
+    .min(1, "Order must have at least one item"),
+});

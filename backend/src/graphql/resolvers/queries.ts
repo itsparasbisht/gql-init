@@ -58,4 +58,12 @@ export const queries: QueryResolvers = {
       return handleResolverError(error);
     }
   }),
+
+  myOrders: requireAuth(async (_parent, _args, { models, user }) => {
+    try {
+      return await models.Order.find({ userId: user!._id }).sort({ createdAt: -1 });
+    } catch (error) {
+      return handleResolverError(error);
+    }
+  }),
 };

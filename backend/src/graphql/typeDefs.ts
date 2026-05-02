@@ -117,6 +117,10 @@ export const typeDefs = gql`
     Get the currently authenticated user's profile.
     """
     profile: User
+    """
+    Get the order history of the currently authenticated user.
+    """
+    myOrders: [Order!]!
   }
 
   input AddProductInput {
@@ -148,6 +152,21 @@ export const typeDefs = gql`
     password: String!
   }
 
+  input AddReviewInput {
+    productId: ID!
+    rating: Int!
+    comment: String
+  }
+
+  input OrderItemInput {
+    productId: ID!
+    quantity: Int!
+  }
+
+  input CreateOrderInput {
+    items: [OrderItemInput!]!
+  }
+
   type Mutation {
     register(input: RegisterInput!): AuthPayload!
     login(input: LoginInput!): AuthPayload!
@@ -155,5 +174,9 @@ export const typeDefs = gql`
     addCategory(name: String!): Category
     updateProduct(product: UpdateProductInput): Product
     deleteProduct(id: ID!): Boolean
+    addReview(input: AddReviewInput!): Review
+    deleteReview(id: ID!): Boolean
+    createOrder(input: CreateOrderInput!): Order
+    updateOrderStatus(id: ID!, status: OrderStatus!): Order
   }
 `;
