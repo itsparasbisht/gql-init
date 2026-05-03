@@ -14,10 +14,11 @@ export const handleResolverError = (error: unknown): never => {
       },
     });
   }
-
+  // 2. Handle Mongoose/MongoDB specific errors
   if (error instanceof Error) {
     // MongoDB Duplicate Key Error (Unique constraints)
-    if ((error as any).code === 11000) {
+    const mongoError = error as Error & { code?: number };
+    if (mongoError.code === 11000) {
       throw new GraphQLError(
         "Conflict: A record with this value already exists",
         {
@@ -41,7 +42,8 @@ export const handleResolverError = (error: unknown): never => {
 
     // Mongoose CastError (Invalid ObjectId format)
     if (error.name === "CastError") {
-      throw new GraphQLError(`Invalid ID format for ${(error as any).path}`, {
+      const castError = error as Error & { path?: string };
+      throw new GraphQLError(`Invalid ID format for ${castError.path}`, {
         extensions: {
           code: "BAD_USER_INPUT",
           http: { status: 400 },

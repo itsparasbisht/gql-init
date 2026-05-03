@@ -1,4 +1,4 @@
-import type { Resolvers } from "../../generated/graphql.js";
+import type { Resolvers, OrderStatus } from "../../generated/graphql.js";
 
 export const typeResolvers: Resolvers = {
   Product: {
@@ -6,7 +6,9 @@ export const typeResolvers: Resolvers = {
       const category = await loaders.category.load(
         parent.categoryId.toString(),
       );
-      if (!category) throw new Error("Category not found");
+      if (!category) {
+        throw new Error("Category not found");
+      }
       return category;
     },
 
@@ -39,13 +41,17 @@ export const typeResolvers: Resolvers = {
   Review: {
     user: async (parent, _args, { models }) => {
       const user = await models.User.findById(parent.userId);
-      if (!user) throw new Error("User not found");
+      if (!user) {
+        throw new Error("User not found");
+      }
       return user;
     },
 
     product: async (parent, _args, { models }) => {
       const product = await models.Product.findById(parent.productId);
-      if (!product) throw new Error("Product not found");
+      if (!product) {
+        throw new Error("Product not found");
+      }
       return product;
     },
 
@@ -56,14 +62,15 @@ export const typeResolvers: Resolvers = {
   Order: {
     user: async (parent, _args, { models }) => {
       const user = await models.User.findById(parent.userId);
-      if (!user) throw new Error("User not found");
+      if (!user) {
+        throw new Error("User not found");
+      }
       return user;
     },
 
     totalAmount: (parent) => parent.totalAmount,
 
-    // Cast status to any to match enum vs string
-    status: (parent) => (parent.status || "PENDING") as any,
+    status: (parent) => (parent.status || "PENDING") as OrderStatus,
 
     createdAt: (parent) => parent.createdAt.toISOString(),
     updatedAt: (parent) => parent.updatedAt.toISOString(),
@@ -72,8 +79,12 @@ export const typeResolvers: Resolvers = {
   OrderItem: {
     product: async (parent, _args, { models }) => {
       // In the generated type, parent is mapped such that we can access productId from our Mongoose model
-      const product = await models.Product.findById((parent as any).productId);
-      if (!product) throw new Error("Product not found");
+      const product = await models.Product.findById(
+        (parent as unknown as { productId: string }).productId,
+      );
+      if (!product) {
+        throw new Error("Product not found");
+      }
       return product;
     },
   },

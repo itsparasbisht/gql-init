@@ -34,10 +34,14 @@ const ProductSchema: Schema = new Schema(
     description: { type: String },
     price: { type: Number, required: true, min: 0 },
     imageUrl: { type: String },
-    categoryId: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
     stock: { type: Number, required: true, min: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Product = mongoose.model<IProduct>("Product", ProductSchema);

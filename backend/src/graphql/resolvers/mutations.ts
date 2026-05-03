@@ -81,22 +81,24 @@ export const mutations: MutationResolvers = {
     try {
       const { id, ...fields } = UpdateProductSchema.parse(product);
       if (fields.categoryId) {
-        const cat = await models.Category.findById(fields.categoryId);
-        if (!cat)
+        const category = await models.Category.findById(fields.categoryId);
+        if (!category) {
           throw new GraphQLError("Category not found", {
             extensions: { code: "NOT_FOUND" },
           });
+        }
       }
-      const updated = await models.Product.findByIdAndUpdate(
+      const updatedProduct = await models.Product.findByIdAndUpdate(
         id,
         { $set: fields },
         { new: true },
       );
-      if (!updated)
+      if (!updatedProduct) {
         throw new GraphQLError("Product not found", {
           extensions: { code: "NOT_FOUND" },
         });
-      return updated;
+      }
+      return updatedProduct;
     } catch (error) {
       return handleResolverError(error);
     }
@@ -104,11 +106,12 @@ export const mutations: MutationResolvers = {
 
   deleteProduct: requireAuth(async (_parent, { id }, { models }) => {
     try {
-      const deleted = await models.Product.findByIdAndDelete(id);
-      if (!deleted)
+      const deletedProduct = await models.Product.findByIdAndDelete(id);
+      if (!deletedProduct) {
         throw new GraphQLError("Product not found", {
           extensions: { code: "NOT_FOUND" },
         });
+      }
       return true;
     } catch (error) {
       return handleResolverError(error);
@@ -120,16 +123,17 @@ export const mutations: MutationResolvers = {
       const { productId, rating, comment } = AddReviewSchema.parse(input);
 
       const product = await models.Product.findById(productId);
-      if (!product)
+      if (!product) {
         throw new GraphQLError("Product not found", {
           extensions: { code: "NOT_FOUND" },
         });
+      }
       // Check if user already reviewed this product
-      const existing = await models.Review.findOne({
+      const existingReview = await models.Review.findOne({
         userId: user!._id,
         productId,
       });
-      if (existing) {
+      if (existingReview) {
         throw new GraphQLError("You have already reviewed this product", {
           extensions: { code: "BAD_USER_INPUT" },
         });
@@ -149,10 +153,11 @@ export const mutations: MutationResolvers = {
   deleteReview: requireAuth(async (_parent, { id }, { models, user }) => {
     try {
       const review = await models.Review.findById(id);
-      if (!review)
+      if (!review) {
         throw new GraphQLError("Review not found", {
           extensions: { code: "NOT_FOUND" },
         });
+      }
 
       if (review.userId.toString() !== user!._id.toString()) {
         throw new GraphQLError("Unauthorized to delete this review", {
@@ -175,8 +180,9 @@ export const mutations: MutationResolvers = {
 
       for (const item of items) {
         const product = await models.Product.findById(item.productId);
-        if (!product)
+        if (!product) {
           throw new GraphQLError(`Product ${item.productId} not found`);
+        }
 
         if (product.stock < item.quantity) {
           throw new GraphQLError(`Insufficient stock for ${product.name}`, {
@@ -209,16 +215,17 @@ export const mutations: MutationResolvers = {
   updateOrderStatus: requireAuth(
     async (_parent, { id, status }, { models }) => {
       try {
-        const updated = await models.Order.findByIdAndUpdate(
+        const updatedOrder = await models.Order.findByIdAndUpdate(
           id,
           { $set: { status } },
           { new: true },
         );
-        if (!updated)
+        if (!updatedOrder) {
           throw new GraphQLError("Order not found", {
             extensions: { code: "NOT_FOUND" },
           });
-        return updated;
+        }
+        return updatedOrder;
       } catch (error) {
         return handleResolverError(error);
       }

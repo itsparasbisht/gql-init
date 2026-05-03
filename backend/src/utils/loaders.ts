@@ -32,7 +32,9 @@ export const createLoaders = () => {
       const reviewMap = reviews.reduce(
         (acc, review) => {
           const pId = review.productId.toString();
-          if (!acc[pId]) acc[pId] = [];
+          if (!acc[pId]) {
+            acc[pId] = [];
+          }
           acc[pId].push(review);
           return acc;
         },

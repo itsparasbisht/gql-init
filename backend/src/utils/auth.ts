@@ -4,6 +4,7 @@ import { GraphQLError } from "graphql";
 import { config } from "../config.js";
 import type { IUser } from "../database/models.js";
 import { logger } from "./logger.js";
+import type { IContext } from "../graphql/context.js";
 
 /**
  * Hash a plain text password using bcrypt.
@@ -28,8 +29,8 @@ export const comparePasswords = async (
  */
 export const generateToken = (user: IUser): string => {
   return jwt.sign({ userId: user._id }, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRES_IN as any,
-  });
+    expiresIn: config.JWT_EXPIRES_IN,
+  } as jwt.SignOptions);
 };
 
 /**
@@ -48,16 +49,21 @@ export const verifyToken = (token: string): { userId: string } | null => {
  * Higher-order resolver to ensure a user is authenticated.
  * It takes the 'originalResolver' as an argument and returns a guarded version of it.
  */
-export function requireAuth<TParent, TArgs, TContext, TReturn>(
+export function requireAuth<TParent, TArgs, TReturn>(
   originalResolver: (
     parent: TParent,
     args: TArgs,
-    context: TContext,
-    info: any,
+    context: IContext,
+    info: unknown,
   ) => TReturn | Promise<TReturn>,
 ) {
-  return function (parent: TParent, args: TArgs, context: TContext, info: any) {
-    if (!(context as any).user) {
+  return function (
+    parent: TParent,
+    args: TArgs,
+    context: IContext,
+    info: unknown,
+  ) {
+    if (!context.user) {
       throw new GraphQLError("Authentication required", {
         extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
       });

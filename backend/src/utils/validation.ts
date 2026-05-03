@@ -44,7 +44,9 @@ export const LoginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export const IdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");
+export const IdSchema = z
+  .string()
+  .regex(/^[0-9a-fA-F]{24}$/, "Invalid ID format");
 
 export const AddReviewSchema = z.object({
   productId: IdSchema,

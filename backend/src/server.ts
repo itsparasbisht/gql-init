@@ -8,11 +8,12 @@ import { createLoaders } from "./utils/loaders.js";
 import { logger } from "./utils/logger.js";
 import { config } from "./config.js";
 import { verifyToken } from "./utils/auth.js";
+import type { IContext } from "./graphql/context.js";
 
 async function startServer() {
   await connectDB();
 
-  const server = new ApolloServer({
+  const server = new ApolloServer<IContext>({
     typeDefs,
     resolvers,
   });
