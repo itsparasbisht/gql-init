@@ -9,24 +9,31 @@ import { Separator } from "@/components/ui/separator";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Star } from "lucide-react";
+import { parseApolloError } from "@/lib/errors";
 import { useCart } from "@/context/CartContext";
+import { Star } from "lucide-react";
 
 export default function ProductDetail() {
   const { addToCart } = useCart();
   const { id } = useParams<{ id: string }>();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const [error, setError] = useState("");
 
   const { data, loading, refetch } = useQuery(GET_PRODUCT, {
-    variables: { id },
+    variables: { id: id! },
   });
 
   const [addReview, { loading: reviewLoading }] = useMutation(ADD_REVIEW_MUTATION, {
     onCompleted: () => {
       setComment("");
       setRating(5);
+      setError("");
       refetch();
+    },
+    onError: (err) => {
+      const parsed = parseApolloError(err);
+      setError(parsed.message);
     },
   });
 
@@ -37,6 +44,7 @@ export default function ProductDetail() {
 
   const handleAddReview = (e: FormEvent) => {
     e.preventDefault();
+    setError("");
     addReview({
       variables: {
         input: {
@@ -55,28 +63,37 @@ export default function ProductDetail() {
           {product.imageUrl ? (
             <img src={product.imageUrl} alt={product.name} className="object-cover w-full h-full" />
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground text-4xl">No Image</div>
+            <div className="flex items-center justify-center h-full text-muted-foreground text-4xl">
+              No Image
+            </div>
           )}
         </div>
 
         <div className="space-y-6">
           <div>
-            <Badge variant="secondary" className="mb-2">{product.category.name}</Badge>
+            <Badge variant="secondary" className="mb-2">
+              {product.category.name}
+            </Badge>
             <h1 className="text-4xl font-bold">{product.name}</h1>
             <p className="text-2xl font-bold mt-2">${product.price.toFixed(2)}</p>
           </div>
 
-          <p className="text-muted-foreground leading-relaxed">
-            {product.description}
-          </p>
+          <p className="text-muted-foreground leading-relaxed">{product.description}</p>
 
           <div className="space-y-4 pt-4">
             <div className="flex items-center gap-4">
-              <span className={`text-sm ${product.stock > 0 ? 'text-green-600' : 'text-destructive'}`}>
-                {product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
+              <span
+                className={`text-sm ${product.stock > 0 ? "text-green-600" : "text-destructive"}`}
+              >
+                {product.stock > 0 ? `In Stock (${product.stock} available)` : "Out of Stock"}
               </span>
             </div>
-            <Button size="lg" className="w-full" disabled={product.stock === 0} onClick={() => addToCart(product)}>
+            <Button
+              size="lg"
+              className="w-full"
+              disabled={product.stock === 0}
+              onClick={() => addToCart(product)}
+            >
               Add to Cart
             </Button>
           </div>
@@ -90,18 +107,23 @@ export default function ProductDetail() {
           <h2 className="text-2xl font-bold">Customer Reviews</h2>
           {product.reviews && product.reviews.length > 0 ? (
             <div className="space-y-6">
-              {product.reviews.map((review: any) => (
+              {product.reviews.map((review) => (
                 <div key={review.id} className="space-y-2">
                   <div className="flex items-center gap-2">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'fill-primary text-primary' : 'text-muted'}`} />
+                        <Star
+                          key={i}
+                          className={`h-4 w-4 ${i < review.rating ? "fill-primary text-primary" : "text-muted"}`}
+                        />
                       ))}
                     </div>
                     <span className="text-sm font-medium">{review.user.email}</span>
                   </div>
                   <p className="text-muted-foreground italic">"{review.comment}"</p>
-                  <p className="text-xs text-muted-foreground">{new Date(parseInt(review.createdAt)).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(parseInt(review.createdAt)).toLocaleDateString()}
+                  </p>
                   <Separator className="mt-4" />
                 </div>
               ))}
@@ -118,6 +140,7 @@ export default function ProductDetail() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleAddReview} className="space-y-4">
+                {error && <div className="text-destructive text-sm font-medium">{error}</div>}
                 <div className="space-y-2">
                   <Label>Rating</Label>
                   <div className="flex gap-1">
@@ -128,7 +151,9 @@ export default function ProductDetail() {
                         onClick={() => setRating(star)}
                         className="focus:outline-none"
                       >
-                        <Star className={`h-6 w-6 ${star <= rating ? 'fill-primary text-primary' : 'text-muted'}`} />
+                        <Star
+                          className={`h-6 w-6 ${star <= rating ? "fill-primary text-primary" : "text-muted"}`}
+                        />
                       </button>
                     ))}
                   </div>

@@ -12,13 +12,14 @@ export default function Home() {
   const { data: productsData, loading: productsLoading } = useQuery(GET_PRODUCTS);
   const { data: categoriesData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
 
-  if (productsLoading || categoriesLoading) return <div className="text-center py-10">Loading products...</div>;
+  if (productsLoading || categoriesLoading)
+    return <div className="text-center py-10">Loading products...</div>;
 
   const products = productsData?.products || [];
   const categories = categoriesData?.categories || [];
 
   const filteredProducts = selectedCategory
-    ? products.filter((p: any) => p.category.id === selectedCategory)
+    ? products.filter((p) => p.category.id === selectedCategory)
     : products;
 
   return (
@@ -33,21 +34,21 @@ export default function Home() {
           >
             All
           </Button>
-          {categories.map((cat: any) => (
+          {categories.map((category) => (
             <Button
-              key={cat.id}
-              variant={selectedCategory === cat.id ? "default" : "outline"}
+              key={category.id}
+              variant={selectedCategory === category.id ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => setSelectedCategory(category.id)}
             >
-              {cat.name}
+              {category.name}
             </Button>
           ))}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredProducts.map((product: any) => (
+        {filteredProducts.map((product) => (
           <Card key={product.id} className="flex flex-col">
             <div className="aspect-square bg-muted relative overflow-hidden rounded-t-lg">
               {product.imageUrl ? (
@@ -74,9 +75,13 @@ export default function Home() {
             </CardContent>
             <CardFooter className="gap-2">
               <Link to={`/product/${product.id}`} className="flex-1">
-                <Button variant="outline" className="w-full">View Details</Button>
+                <Button variant="outline" className="w-full">
+                  View Details
+                </Button>
               </Link>
-              <Button className="flex-1" onClick={() => addToCart(product)}>Add to Cart</Button>
+              <Button className="flex-1" onClick={() => addToCart(product)}>
+                Add to Cart
+              </Button>
             </CardFooter>
           </Card>
         ))}

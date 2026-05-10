@@ -1,6 +1,6 @@
-import { gql } from "@apollo/client";
+import { gql } from "@/generated";
 
-export const REGISTER_MUTATION = gql`
+export const REGISTER_MUTATION = gql(`
   mutation Register($input: RegisterInput!) {
     register(input: $input) {
       token
@@ -10,9 +10,9 @@ export const REGISTER_MUTATION = gql`
       }
     }
   }
-`;
+`);
 
-export const LOGIN_MUTATION = gql`
+export const LOGIN_MUTATION = gql(`
   mutation Login($input: LoginInput!) {
     login(input: $input) {
       token
@@ -22,9 +22,9 @@ export const LOGIN_MUTATION = gql`
       }
     }
   }
-`;
+`);
 
-export const ADD_REVIEW_MUTATION = gql`
+export const ADD_REVIEW_MUTATION = gql(`
   mutation AddReview($input: AddReviewInput!) {
     addReview(input: $input) {
       id
@@ -33,9 +33,9 @@ export const ADD_REVIEW_MUTATION = gql`
       createdAt
     }
   }
-`;
+`);
 
-export const CREATE_ORDER_MUTATION = gql`
+export const CREATE_ORDER_MUTATION = gql(`
   mutation CreateOrder($input: CreateOrderInput!) {
     createOrder(input: $input) {
       id
@@ -43,9 +43,9 @@ export const CREATE_ORDER_MUTATION = gql`
       status
     }
   }
-`;
+`);
 
-export const ADD_PRODUCT_MUTATION = gql`
+export const ADD_PRODUCT_MUTATION = gql(`
   mutation AddProduct($product: AddProductInput!) {
     addProduct(product: $product) {
       id
@@ -53,4 +53,4 @@ export const ADD_PRODUCT_MUTATION = gql`
       price
     }
   }
-`;
+`);

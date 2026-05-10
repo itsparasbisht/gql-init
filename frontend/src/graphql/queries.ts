@@ -1,6 +1,6 @@
-import { gql } from "@apollo/client";
+import { gql } from "@/generated";
 
-export const GET_PROFILE = gql`
+export const GET_PROFILE = gql(`
   query GetProfile {
     profile {
       id
@@ -8,9 +8,9 @@ export const GET_PROFILE = gql`
       createdAt
     }
   }
-`;
+`);
 
-export const GET_MY_ORDERS = gql`
+export const GET_MY_ORDERS = gql(`
   query GetMyOrders {
     myOrders {
       id
@@ -26,9 +26,9 @@ export const GET_MY_ORDERS = gql`
       }
     }
   }
-`;
+`);
 
-export const GET_PRODUCTS = gql`
+export const GET_PRODUCTS = gql(`
   query GetProducts {
     products {
       id
@@ -43,9 +43,9 @@ export const GET_PRODUCTS = gql`
       stock
     }
   }
-`;
+`);
 
-export const GET_PRODUCT = gql`
+export const GET_PRODUCT = gql(`
   query GetProduct($id: ID!) {
     product(id: $id) {
       id
@@ -68,13 +68,13 @@ export const GET_PRODUCT = gql`
       }
     }
   }
-`;
+`);
 
-export const GET_CATEGORIES = gql`
+export const GET_CATEGORIES = gql(`
   query GetCategories {
     categories {
       id
       name
     }
   }
-`;
+`);

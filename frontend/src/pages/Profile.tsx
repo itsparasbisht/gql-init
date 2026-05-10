@@ -26,7 +26,7 @@ export default function Profile() {
           <Separator className="my-4" />
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Member Since</p>
-            <p>{profile?.createdAt ? new Date(parseInt(profile.createdAt)).toLocaleDateString() : "N/A"}</p>
+            <p>{profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString() : "N/A"}</p>
           </div>
         </CardContent>
       </Card>
@@ -37,17 +37,19 @@ export default function Profile() {
           <p className="text-muted-foreground">You haven't placed any orders yet.</p>
         ) : (
           <div className="space-y-4">
-            {orders.map((order: any) => (
+            {orders.map((order) => (
               <Card key={order.id}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle className="text-sm font-medium">
-                    Order ID: {order.id}
-                  </CardTitle>
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
-                    order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
+                  <CardTitle className="text-sm font-medium">Order ID: {order.id}</CardTitle>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      order.status === "DELIVERED"
+                        ? "bg-green-100 text-green-700"
+                        : order.status === "PENDING"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
                     {order.status}
                   </span>
                 </CardHeader>
@@ -56,12 +58,18 @@ export default function Profile() {
                     Placed on: {new Date(parseInt(order.createdAt)).toLocaleDateString()}
                   </div>
                   <div className="space-y-2">
-                    {order.items.map((item: any, idx: number) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span>{item.product.name} x {item.quantity}</span>
-                        <span>${(item.priceAtOrder * item.quantity).toFixed(2)}</span>
-                      </div>
-                    ))}
+                    {order.items && order?.items?.length > 0 ? (
+                      order.items.map((item, idx: number) => (
+                        <div key={idx} className="flex justify-between text-sm">
+                          <span>
+                            {item.product.name} x {item.quantity}
+                          </span>
+                          <span>${(item.priceAtOrder * item.quantity).toFixed(2)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground">No items in this order.</p>
+                    )}
                   </div>
                   <Separator className="my-4" />
                   <div className="flex justify-between font-bold">

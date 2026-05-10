@@ -2,10 +2,18 @@ import { useState, ChangeEvent, FormEvent } from "react";
 import { useMutation } from "@apollo/client";
 import { Link } from "react-router-dom";
 import { REGISTER_MUTATION } from "@/graphql/mutations";
+import { parseApolloError } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -13,12 +21,13 @@ export default function Register() {
   const [error, setError] = useState("");
 
   const [register, { loading }] = useMutation(REGISTER_MUTATION, {
-    onCompleted: (data: any) => {
+    onCompleted: (data) => {
       localStorage.setItem("token", data.register.token);
       window.location.href = "/";
     },
-    onError: (err: any) => {
-      setError(err.message);
+    onError: (err) => {
+      const parsed = parseApolloError(err);
+      setError(parsed.message);
     },
   });
 

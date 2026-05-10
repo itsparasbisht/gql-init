@@ -6,18 +6,18 @@ const MONGODB_URI = config.MONGODB_URI;
 
 export const connectDB = async () => {
   try {
-    mongoose.set("debug", (collectionName, method, query) => {
-      if (config.NODE_ENV === "development") {
-        logger.info(
-          {
-            collection: collectionName,
-            method,
-            query,
-          },
-          "Database Query",
-        );
-      }
-    });
+    // mongoose.set("debug", (collectionName, method, query) => {
+    //   if (config.NODE_ENV === "development") {
+    //     logger.info(
+    //       {
+    //         collection: collectionName,
+    //         method,
+    //         query,
+    //       },
+    //       "Database Query",
+    //     );
+    //   }
+    // });
 
     await mongoose.connect(MONGODB_URI);
     logger.info("Connected to MongoDB successfully");
