@@ -8,9 +8,16 @@ export interface CartItem {
   imageUrl?: string;
 }
 
+export interface AddToCartInput {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string | null;
+}
+
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: any) => void;
+  addToCart: (product: AddToCartInput) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -29,7 +36,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: any) => {
+  const addToCart = (product: AddToCartInput) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
@@ -44,7 +51,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           name: product.name,
           price: product.price,
           quantity: 1,
-          imageUrl: product.imageUrl,
+          imageUrl: product.imageUrl || undefined,
         },
       ];
     });
