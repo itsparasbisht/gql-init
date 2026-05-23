@@ -7,18 +7,9 @@ import { useCart } from "@/context/CartContext";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ShoppingCart, Eye, Package } from "lucide-react";
+import { GetProductsQuery } from "@/generated/graphql";
 
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  imageUrl?: string | null;
-  category: {
-    id: string;
-    name: string;
-  };
-}
+type Product = GetProductsQuery["products"][number];
 
 export default function Home() {
   const { addToCart } = useCart();
