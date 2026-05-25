@@ -1,27 +1,23 @@
-import { TaskData } from "@/types";
 import Task from "./Task";
+import { useAppDispatch, useAppSelector } from "@/lib/store";
+import { archiveTask, pinTask } from "@/lib/tasksSlice";
 
-type TaskListProps = {
-  loading?: boolean;
-  tasks: TaskData[];
-  onPinTask: (id: string) => void;
-  onArchiveTask: (id: string) => void;
-};
+export default function TaskList() {
+  const tasks = useAppSelector((state) => state.tasks.tasks);
+  const dispatch = useAppDispatch();
 
-export default function TaskList({
-  loading = false,
-  tasks,
-  onPinTask,
-  onArchiveTask,
-}: TaskListProps) {
+  const onPinTask = (id: string) => {
+    dispatch(pinTask(id));
+  };
+
+  const onArchiveTask = (id: string) => {
+    dispatch(archiveTask(id));
+  };
+
   const events = {
     onPinTask,
     onArchiveTask,
   };
-
-  if (loading) {
-    return <div>loading</div>;
-  }
 
   if (tasks.length === 0) {
     return <div>empty</div>;
